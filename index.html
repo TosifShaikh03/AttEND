@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance Management System</title>
+    <link rel="stylesheet" href="style.css">       
+</head>
+<body>
+
+<!-- ===== LOADING OVERLAY ===== -->
+<div id="loadingOverlay" class="loading-overlay">
+    <div class="loading-spinner-container">
+        <div class="loading-spinner"></div>
+        <p id="loadingMessage">Loading...</p>
+    </div>
+</div>
+
+<!-- ===== TOAST CONTAINER ===== -->
+<div id="toastContainer"></div>
+
+<!-- ===== AUTH CONTAINER ===== -->
+<div id="authContainer" class="container">
+    <div class="auth-box">
+        <h2 id="authTitle">Student Sign Up</h2>
+        <div id="authForm">
+            <div id="studentFields" style="display:none;">
+                <input type="text" id="fullName" placeholder="Full Name" required>
+                <input type="text" id="rollNumber" placeholder="Roll Number" required>
+                <select id="classSelect"><option value="">Select Class</option></select>
+                <select id="divisionSelect"><option value="">Select Division</option><option value="A">Division A</option><option value="B">Division B</option><option value="C">Division C</option><option value="D">Division D</option></select>
+            </div>
+            <input type="email" id="email" placeholder="Email" required>
+            <input type="password" id="password" placeholder="Password" required>
+            <button onclick="handleAuth()" id="authButton">Sign Up</button>
+            <p id="toggleAuth">Already have an account? <a href="#" onclick="toggleAuthMode()">Login</a></p>
+        </div>
+    </div>
+</div>
+
+<!-- ===== STUDENT DASHBOARD ===== -->
+<div id="studentDashboard" class="dashboard" style="display:none;">
+    <div class="header"><h2>Student Dashboard</h2><button onclick="logout()" class="logout-btn">Logout</button></div>
+    <div class="student-info">
+        <h3>Your Attendance Record</h3>
+        <div class="subject-filter">
+            <label>Filter by Subject:</label>
+            <select id="studentSubjectFilter" onchange="loadStudentAttendance()"><option value="">All Subjects</option></select>
+        </div>
+        <div id="studentAttendanceList"></div>
+    </div>
+</div>
+
+<!-- ===== TEACHER DASHBOARD ===== -->
+<div id="teacherDashboard" class="dashboard" style="display:none;">
+    <div class="header">
+        <h2>Teacher Dashboard</h2>
+        <div style="display:flex;gap:10px;">
+            <button onclick="openSetupPage()" class="btn-setup"> Setup</button>
+            <button onclick="logout()" class="logout-btn">Logout</button>
+        </div>
+    </div>
+    <div class="teacher-controls">
+        <select id="teacherClassSelect" onchange="onClassDivisionChange()"><option value="">Select Class</option></select>
+        <select id="teacherDivisionSelect" onchange="onClassDivisionChange()"><option value="">Select Division</option><option value="A">Division A</option><option value="B">Division B</option><option value="C">Division C</option><option value="D">Division D</option></select>
+        <select id="subjectSelect"><option value="">Select Subject</option></select>
+        <button onclick="showAddStudentForm()" class="btn-add">Add Student</button>
+        <button onclick="openAttendancePage()" class="btn-primary">Take Attendance</button>
+    </div>
+    <div id="studentList" class="student-list"></div>
+</div>
+
+<!-- ===== ADD/EDIT STUDENT MODAL ===== -->
+<div id="studentModal" class="modal" style="display:none;">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <h2 id="modalTitle">Add Student</h2>
+        <input type="text" id="modalName" placeholder="Full Name">
+        <input type="text" id="modalRoll" placeholder="Roll Number">
+        <input type="email" id="modalEmail" placeholder="Email">
+        <input type="password" id="modalPassword" placeholder="Password">
+        <select id="modalClass"><option value="">Select Class</option></select>
+        <select id="modalDivision"><option value="">Select Division</option><option value="A">Division A</option><option value="B">Division B</option><option value="C">Division C</option><option value="D">Division D</option></select>
+        <button onclick="saveStudent()" class="btn-primary">Save</button>
+    </div>
+</div>
+
+<!-- ===== ATTENDANCE MODAL ===== -->
+<div id="attendanceModal" class="modal" style="display:none;">
+    <div class="modal-content attendance-modal-content">
+        <span class="close" onclick="closeAttendanceModal()">&times;</span>
+        <h2>Mark Attendance</h2>
+        <div class="attendance-info">
+            <p><strong>Date:</strong> <span id="attendanceDate"></span></p>
+            <p><strong>Class:</strong> <span id="attendanceClass"></span></p>
+            <p><strong>Division:</strong> <span id="attendanceDivision"></span></p>
+            <p><strong>Subject:</strong> <span id="attendanceSubject"></span></p>
+        </div>
+        <div id="attendanceList" class="attendance-list-container"></div>
+        <div class="attendance-actions">
+            <button onclick="markAttendance()" class="btn-success">✅ Mark Attendance</button>
+            <button onclick="closeAttendanceModal()" class="btn-danger">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- ===== VIEW STUDENT ATTENDANCE MODAL ===== -->
+<div id="viewStudentModal" class="modal" style="display:none;">
+    <div class="modal-content view-student-modal-content">
+        <span class="close" onclick="closeViewStudentModal()">&times;</span>
+        <h2 id="viewStudentTitle">Student Attendance</h2>
+        <div id="viewStudentContent"></div>
+    </div>
+</div>
+
+<!-- ===== SETUP PAGE (hidden embedded) ===== -->
+<div id="setupPageContainer" style="display:none;">
+    <div class="setup-container">
+        <h1>📚 Attendance System Setup</h1>
+        <p class="subtitle">Manage classes, subjects, and assignments</p>
+        <div id="statusMessage" class="status-message"></div>
+        <!-- Login Section -->
+        <div id="loginSection" class="section login-section">
+            <h2>🔐 Teacher Login Required</h2>
+            <p style="color:#666;margin-bottom:20px;">Please login with your teacher account to setup the database</p>
+            <input type="email" id="loginEmail" placeholder="Teacher Email">
+            <input type="password" id="loginPassword" placeholder="Password">
+            <button onclick="loginTeacher()" class="btn-primary">Login</button>
+        </div>
+        <!-- Setup Content -->
+        <div id="setupContent" class="setup-content">
+            <div class="user-info">
+                <span>Logged in as: <span id="userEmail"></span></span>
+                <div style="display:flex;gap:10px;">
+                    <button onclick="goToDashboard()" class="btn-back">⬅ Back to Dashboard</button>
+                    <button onclick="logoutTeacher()" class="btn-logout">Logout</button>
+                </div>
+            </div>
+            <div class="tab-buttons">
+                <button onclick="switchTab('classes')" class="tab-btn active" id="classesTab">🏫 Manage Classes</button>
+                <button onclick="switchTab('subjects')" class="tab-btn" id="subjectsTab">📖 Manage Subjects</button>
+                <button onclick="switchTab('assign')" class="tab-btn" id="assignTab">📋 Assign Subjects</button>
+                <button onclick="switchTab('view')" class="tab-btn" id="viewTab">👁️ View All Data</button>
+            </div>
+            <!-- Classes -->
+            <div id="classesContent" class="tab-content active">
+                <div class="section">
+                    <h2>Add New Class</h2>
+                    <div class="class-management">
+                        <input type="text" id="newClassName" placeholder="Class name (e.g., FY BSC CS)">
+                        <input type="text" id="newClassFullName" placeholder="Full name (optional)">
+                        <button onclick="addNewClass()" class="btn-secondary">➕ Add Class</button>
+                    </div>
+                    <p style="color:#666;font-size:12px;">💡 Click Edit on existing class to modify, or Delete to remove it completely.</p>
+                </div>
+                <div class="section">
+                    <h2>Existing Classes</h2>
+                    <div id="classList" class="class-list"><p class="no-data">Loading classes...</p></div>
+                </div>
+            </div>
+            <!-- Subjects -->
+            <div id="subjectsContent" class="tab-content">
+                <div class="section">
+                    <h2>Add New Subjects</h2>
+                    <div class="subject-input">
+                        <input type="text" id="subjectInput" placeholder="Enter subject name (e.g., Python Programming)">
+                        <button onclick="addSubjectToList()" class="btn-secondary">Add to List</button>
+                    </div>
+                    <div id="subjectList" class="subject-list"></div>
+                    <button onclick="saveAllSubjects()" class="btn-save" style="margin-top:10px;">💾 Save All to Database</button>
+                </div>
+                <div class="section">
+                    <h2>Subjects in Database</h2>
+                    <div id="dbSubjectList" class="subject-list"></div>
+                </div>
+            </div>
+            <!-- Assign -->
+            <div id="assignContent" class="tab-content">
+                <div class="section">
+                    <h2>📋 Assign Subjects to Each Class-Division</h2>
+                    <p style="color:#666;margin-bottom:15px;">Select which subjects should be assigned to each class-division combination. Check the subjects you want to assign, then click "Save Assignments".</p>
+                    <div class="filter-controls">
+                        <select id="filterAssignClass" onchange="renderAssignmentGrid()"><option value="">All Classes</option></select>
+                        <select id="filterAssignDivision" onchange="renderAssignmentGrid()"><option value="">All Divisions</option><option value="A">Division A</option><option value="B">Division B</option><option value="C">Division C</option><option value="D">Division D</option></select>
+                        <button onclick="loadAssignmentsFromDB()" class="btn-secondary">🔄 Refresh</button>
+                        <button onclick="selectAllSubjectsForVisible()" class="btn-save">✅ Select All Visible</button>
+                        <button onclick="deselectAllSubjectsForVisible()" class="btn-cancel">❌ Deselect All Visible</button>
+                    </div>
+                    <div id="assignmentGrid" class="assignment-grid"><p class="no-data">Loading assignments...</p></div>
+                    <button onclick="saveAllAssignments()" class="btn-primary">💾 Save All Assignments</button>
+                </div>
+            </div>
+            <!-- View -->
+            <div id="viewContent" class="tab-content">
+                <div class="section">
+                    <h2>Database Overview</h2>
+                    <button onclick="viewExistingData()" class="btn-secondary">🔄 Refresh Data</button>
+                    <button onclick="clearAllData()" class="btn-danger" style="margin-left:10px;">🗑️ Clear All Data</button>
+                    <div id="existingData" style="margin-top:15px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
