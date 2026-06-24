@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance Management System</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+    <!-- Loading Overlay -->
+<div id="loadingOverlay" class="loading-overlay">
+    <div class="loading-spinner-container">
+        <div class="loading-spinner"></div>
+        <p id="loadingMessage">Loading...</p>
+    </div>
+</div>
+
+<!-- Toast Container -->
+<div id="toastContainer"></div>
+    <!-- Login/Signup Container -->
+    <div id="authContainer" class="container">
+        <div class="auth-box">
+            <h2 id="authTitle">Student Sign Up</h2>
+            <div id="authForm">
+                <div id="studentFields" style="display: none;">
+                    <input type="text" id="fullName" placeholder="Full Name" required>
+                    <input type="text" id="rollNumber" placeholder="Roll Number" required>
+                    <select id="classSelect">
+                        <option value="">Select Class</option>
+                    </select>
+                    <select id="divisionSelect">
+                        <option value="">Select Division</option>
+                        <option value="A">Division A</option>
+                        <option value="B">Division B</option>
+                        <option value="C">Division C</option>
+                        <option value="D">Division D</option>
+                    </select>
+                </div>
+                <input type="email" id="email" placeholder="Email" required>
+                <input type="password" id="password" placeholder="Password" required>
+                <button onclick="handleAuth()" id="authButton">Sign Up</button>
+                <p id="toggleAuth">Already have an account? <a href="#" onclick="toggleAuthMode()">Login</a></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Student Dashboard -->
+    <div id="studentDashboard" class="dashboard" style="display: none;">
+        <div class="header">
+            <h2>Student Dashboard</h2>
+            <button onclick="logout()" class="logout-btn">Logout</button>
+        </div>
+        <div class="student-info">
+            <h3>Your Attendance Record</h3>
+            <div class="subject-filter">
+                <label>Filter by Subject:</label>
+                <select id="studentSubjectFilter" onchange="loadStudentAttendance()">
+                    <option value="">All Subjects</option>
+                </select>
+            </div>
+            <div id="studentAttendanceList"></div>
+        </div>
+    </div>
+
+    <!-- Teacher Dashboard -->
+    <div id="teacherDashboard" class="dashboard" style="display: none;">
+        <div class="header">
+            <h2>Teacher Dashboard</h2>
+            <button onclick="logout()" class="logout-btn">Logout</button>
+        </div>
+
+        <!-- Class and Attendance Controls -->
+        <div class="teacher-controls">
+            <select id="teacherClassSelect" onchange="onClassDivisionChange()">
+                <option value="">Select Class</option>
+            </select>
+            <select id="teacherDivisionSelect" onchange="onClassDivisionChange()">
+                <option value="">Select Division</option>
+                <option value="A">Division A</option>
+                <option value="B">Division B</option>
+                <option value="C">Division C</option>
+                <option value="D">Division D</option>
+            </select>
+            <select id="subjectSelect">
+                <option value="">Select Subject</option>
+            </select>
+            <button onclick="showAddStudentForm()" class="btn-add">Add Student</button>
+            <button onclick="openAttendancePage()" class="btn-primary">Take Attendance</button>
+        </div>
+
+        <div id="studentList" class="student-list"></div>
+    </div>
+
+    <!-- Add/Edit Student Modal -->
+    <div id="studentModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2 id="modalTitle">Add Student</h2>
+            <input type="text" id="modalName" placeholder="Full Name">
+            <input type="text" id="modalRoll" placeholder="Roll Number">
+            <input type="email" id="modalEmail" placeholder="Email">
+            <input type="password" id="modalPassword" placeholder="Password">
+            <select id="modalClass">
+                <option value="">Select Class</option>
+            </select>
+            <select id="modalDivision">
+                <option value="">Select Division</option>
+                <option value="A">Division A</option>
+                <option value="B">Division B</option>
+                <option value="C">Division C</option>
+                <option value="D">Division D</option>
+            </select>
+            <button onclick="saveStudent()" class="btn-primary">Save</button>
+        </div>
+    </div>
+
+    <!-- Attendance Page Modal -->
+    <div id="attendanceModal" class="modal" style="display: none;">
+        <div class="modal-content attendance-modal-content">
+            <span class="close" onclick="closeAttendanceModal()">&times;</span>
+            <h2>Mark Attendance</h2>
+            <div class="attendance-info">
+                <p><strong>Date:</strong> <span id="attendanceDate"></span></p>
+                <p><strong>Class:</strong> <span id="attendanceClass"></span></p>
+                <p><strong>Division:</strong> <span id="attendanceDivision"></span></p>
+                <p><strong>Subject:</strong> <span id="attendanceSubject"></span></p>
+            </div>
+            <div id="attendanceList" class="attendance-list-container"></div>
+            <div class="attendance-actions">
+                <button onclick="markAttendance()" class="btn-success">✅ Mark Attendance</button>
+                <button onclick="closeAttendanceModal()" class="btn-danger">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Student Attendance Modal -->
+    <div id="viewStudentModal" class="modal" style="display: none;">
+        <div class="modal-content view-student-modal-content">
+            <span class="close" onclick="closeViewStudentModal()">&times;</span>
+            <h2 id="viewStudentTitle">Student Attendance</h2>
+            <div id="viewStudentContent"></div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
